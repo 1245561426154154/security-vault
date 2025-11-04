@@ -1,35 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>SecureVault</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="container">
-  <h1 class="title">SecureVault</h1>
-  <div class="card">
-    <form id="uploadForm">
-      <textarea name="text" placeholder="Paste your .lua or .txt code here"></textarea>
-      <input type="file" name="file">
-      <label><input type="checkbox" name="require_key"> Only Roblox clients can access</label>
-      <button type="submit">Vault it!</button>
+<div class="bg"></div>
+<main class="wrap">
+  <header class="head">
+    <h1>SecureVault</h1>
+    <p class="sub">Paste or upload your .lua/.txt, lock it, and give Roblox clients a secure key to fetch it.</p>
+  </header>
+
+  <section class="card">
+    <form id="f">
+      <textarea name="text" placeholder="Paste code here... (or choose a file)"></textarea>
+      <div class="row">
+        <input type="file" name="file" id="file">
+        <label class="chk"><input type="checkbox" name="require_key"> Only Roblox clients (access key)</label>
+      </div>
+      <input name="password" placeholder="Optional website password (to view on web)" />
+      <div class="row">
+        <button type="submit" class="btn">Vault it</button>
+        <button type="button" id="clear" class="btn ghost">Clear</button>
+      </div>
     </form>
-    <div id="result" class="fade"></div>
-  </div>
-</div>
+
+    <div id="out" class="outcard" hidden>
+      <div><strong>Link:</strong> <a id="link" target="_blank"></a>
+        <button class="mini" data-copy target="link">Copy</button>
+      </div>
+      <div id="keywrap" style="margin-top:.6rem"></div>
+      <small class="hint">Roblox clients fetch raw code: <code>GET /v/yourtoken?key=ACCESS_KEY</code></small>
+    </div>
+  </section>
+
+  <footer class="foot">Set <code>MASTER_KEY</code> in your Render env to keep files decryptable across restarts.</footer>
+</main>
+
 <script>
-const form = document.getElementById("uploadForm");
-form.onsubmit = async e => {
+const f = document.getElementById('f'), out = document.getElementById('out'), linkEl = document.getElementById('link'), keywrap = document.getElementById('keywrap');
+f.onsubmit = async e => {
   e.preventDefault();
-  const fd = new FormData(form);
-  const res = await fetch("/upload", {method:"POST", body:fd});
-  const data = await res.json();
-  document.getElementById("result").innerHTML =
-    `<p>Link: <a href="${data.link}" target="_blank">${data.link}</a></p>` +
-    (data.access_key ? `<p>Access key: <b>${data.access_key}</b></p>` : "");
-  document.getElementById("result").classList.add("show");
+  const fd = new FormData(f);
+  const res = await fetch('/upload', { method:'POST', body: fd });
+  if (!res.ok) { const t = await res.json().catch(()=>{}); return alert(t && t.error ? t.error : 'Upload failed'); }
+  const j = await res.json();
+  linkEl.href = j.link;
+  linkEl.textContent = location.origin + j.link;
+  out.hidden = false;
+  if (j.access_key){
+    keywrap.innerHTML = `<strong>Access key:</strong> <span id="ak">${j.access_key}</span> <button class="mini" data-copy target="ak">Copy</button>`;
+  } else keywrap.innerHTML = `<em>Access key not required for this vault.</em>`;
 };
+document.getElementById('clear').onclick = ()=>{ f.reset(); out.hidden=true; keywrap.innerHTML=''; linkEl.textContent=''; };
+document.addEventListener('click', e=>{
+  const t = e.target;
+  if (t.dataset && t.dataset.copy){
+    const target = document.getElementById(t.getAttribute('target'));
+    if (!target) return;
+    navigator.clipboard.writeText(target.textContent).then(()=>{ t.textContent='Copied'; setTimeout(()=>t.textContent='Copy',900); });
+  }
+});
 </script>
 </body>
 </html>
