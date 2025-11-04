@@ -1,8 +1,8 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>SecureVault Upload</title>
+<meta charset="UTF-8">
+<title>SecureVault</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -10,23 +10,24 @@
   <h1 class="title">SecureVault</h1>
   <div class="card">
     <form id="uploadForm">
-      <textarea name="text" placeholder="Paste your .lua or .txt file here"></textarea>
+      <textarea name="text" placeholder="Paste your .lua or .txt code here"></textarea>
       <input type="file" name="file">
-      <input type="text" name="password" placeholder="Optional password (web view)">
-      <label><input type="checkbox" name="require_key"> Require access key for Roblox</label>
-      <button type="submit">Upload</button>
+      <label><input type="checkbox" name="require_key"> Only Roblox clients can access</label>
+      <button type="submit">Vault it!</button>
     </form>
     <div id="result" class="fade"></div>
   </div>
 </div>
 <script>
-const form=document.getElementById("uploadForm");
-form.onsubmit=async e=>{
+const form = document.getElementById("uploadForm");
+form.onsubmit = async e => {
   e.preventDefault();
-  const fd=new FormData(form);
-  const res=await fetch("/upload",{method:"POST",body:fd});
-  const data=await res.json();
-  document.getElementById("result").innerHTML=`<p>Link: <a href="${data.link}">${data.link}</a></p>`+(data.access_key?`<p>Access key: <b>${data.access_key}</b></p>`:"");
+  const fd = new FormData(form);
+  const res = await fetch("/upload", {method:"POST", body:fd});
+  const data = await res.json();
+  document.getElementById("result").innerHTML =
+    `<p>Link: <a href="${data.link}" target="_blank">${data.link}</a></p>` +
+    (data.access_key ? `<p>Access key: <b>${data.access_key}</b></p>` : "");
   document.getElementById("result").classList.add("show");
 };
 </script>
