@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SecureVault — Locked</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="bg"></div>
+<main class="wrap small">
+  <header class="head">
+    <h1>Vault — Locked</h1>
+    <p class="sub">This vault is encrypted. Only authorized Roblox clients or someone with the password can view it.</p>
+  </header>
+
+  <section class="card">
+    <div id="msg">
+      <p class="center">If you are a Roblox client, fetch the raw code with <code>?key=ACCESS_KEY</code>.</p>
+    </div>
+    <form id="unlock" style="margin-top:.6rem">
+      <input name="password" placeholder="Enter website password" required />
+      <div class="row"><button class="btn" type="submit">Unlock</button></div>
+    </form>
+    <pre id="code" hidden></pre>
+    <div id="err" class="err"></div>
+  </section>
+  <footer class="foot small">Only enter passwords you control. This page will not reveal the access key.</footer>
+</main>
+
+<script>
+const u = document.getElementById('unlock'), code = document.getElementById('code'), err = document.getElementById('err');
+u.onsubmit = async e => {
+  e.preventDefault(); err.textContent=''; code.hidden=true;
+  // extract token from URL path /v/<token>
+  const parts = location.pathname.split('/');
+  const token = parts[parts.length-1];
+  const form = new FormData(u);
+  const res = await fetch(`/v/${token}/unlock`, { method:'POST', body: new URLSearchParams({ password: form.get('password') }) });
+  if (!res.ok){ const t = await res.json().catch(()=>{}); err.textContent = t && t.error ? t.error : 'Unlock failed'; return; }
+  const j = await res.json();
+  code.textContent = j.code;
+  code.hidden = false;
+};
+</script>
+</body>
+</html>
